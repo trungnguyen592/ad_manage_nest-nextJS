@@ -22,6 +22,10 @@ import { Restaurant } from './modules/restaurants/entities/restaurant.entity';
 import { Review } from './modules/reviews/entities/review.entity';
 import { Like } from './modules/likes/entities/like.entity';
 import { Menu } from './modules/menus/entities/menu.entity';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -51,6 +55,35 @@ import { Menu } from './modules/menus/entities/menu.entity';
         autoLoadEntities: true,
       }),
     }),
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        transport: {
+          host: 'smtp.gmail.com', //máy chủ SMTP của Gmail
+          port: 465, //gửi email qua kết nối bảo mật
+          secure: true,
+          // ignoreTLS: true,
+          // secure: false, //nếu máy chủ chặn port 465 chạy port 587
+          auth: {
+            user: configService.get('MAIL_USER'),
+            pass: configService.get('MAIL_PASSWORD'),
+          },
+        },
+        defaults: {
+          from: '"No Reply" <no-reply@localhost>',
+        },
+        //preview: true,
+        template: {
+          dir: process.cwd() + '/src/mail/templates/',
+          adapter: new HandlebarsAdapter(), //biên dịch template thành HTML.
+          options: {
+            strict: true, //bất kỳ lỗi nào trong quá trình biên dịch (ví dụ: thiếu biến) sẽ gây ra lỗi ngay lập tức.
+          },
+        },
+      }),
+      inject: [ConfigService],
+    }),
+
     UsersModule,
     AuthModule,
     LikesModule,
@@ -63,6 +96,12 @@ import { Menu } from './modules/menus/entities/menu.entity';
     ReviewsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD, //global guard cho all route: kiểu như đặt guard cho toàn bộ modules, nếu ko có UseGuards => bắn lỗi bên JwtAuthGuard
+      useClass: JwtAuthGuard, //
+    },
+  ],
 })
 export class AppModule {}

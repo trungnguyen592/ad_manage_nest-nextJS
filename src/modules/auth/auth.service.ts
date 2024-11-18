@@ -46,4 +46,24 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
     };
   }
+
+  register = async (registerDto: CreateAuthDto) => {
+    return await this.userService.handleRegister(registerDto);
+  };
+
+  // checkCode = async (data: CodeAuthDto) => {
+  //   return await this.userService.handleActive(data);
+  // }
+
+  // retryActive = async (data: string) => {
+  //   return await this.userService.retryActive(data);
+  // }
+
+  // retryPassword = async (data: string) => {
+  //   return await this.userService.retryPassword(data);
+  // }
+
+  // changePassword = async (data: ChangePasswordAuthDto) => {
+  //   return await this.userService.changePassword(data);
+  // }
 }

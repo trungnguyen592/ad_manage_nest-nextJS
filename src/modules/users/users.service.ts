@@ -12,15 +12,20 @@ import { hashPasswordHelper } from '@/util/helper';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 import { PaginationDto } from './dto/pagination.dto';
+import {
+  ChangePasswordAuthDto,
+  CodeAuthDto,
+  CreateAuthDto,
+} from '../auth/dto/create-auth.dto';
 // import { ChangePasswordAuthDto, CodeAuthDto, CreateAuthDto } from '@/auth/dto/create-auth.dto';
-// import { MailerService } from '@nestjs-modules/mailer';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    // private readonly mailerService: MailerService,
+    private readonly mailerService: MailerService,
   ) {}
 
   async findById(id: string): Promise<User> {
@@ -108,44 +113,47 @@ export class UsersService {
     await this.userRepository.remove(removeuser);
   }
 
-  // async handleRegister(registerDto: CreateAuthDto) {
-  //   const { name, email, password } = registerDto;
+  async handleRegister(registerDto: CreateAuthDto) {
+    // Check email
+    const isExist = await this.isEmailExist(registerDto.email);
+    if (isExist) {
+      throw new BadRequestException(
+        `Email đã tồn tại. Vui lòng sử dụng email khác.`,
+      );
+    }
 
-  //   // Check email
-  //   const isExist = await this.isEmailExist(email);
-  //   if (isExist) {
-  //     throw new BadRequestException(
-  //       `Email đã tồn tại: ${email}. Vui lòng sử dụng email khác.`,
-  //     );
-  //   }
+    // Hash password
+    const hashPassword = await hashPasswordHelper(registerDto.password);
 
-  //   // Hash password
-  //   const hashPassword = await hashPasswordHelper(password);
-  //   const codeId = uuidv4();
+    // Kiểu dúng cccd, sau dùng để kích hoạt tk, đặt lại mk,...
+    const codeId = uuidv4();
 
-  //   const user = this.userRepository.create({
-  //     name,
-  //     email,
-  //     password: hashPassword,
-  //     isActive: false,
-  //     codeId,
-  //     codeExpired: dayjs().add(5, 'minutes').toDate(),
-  //   });
-  //   await this.userRepository.save(user);
+    const user = this.userRepository.create({
+      ...registerDto,
+      password: hashPassword, // Mật khẩu đã mã hóa
+      isActive: false,
+      codeId,
+      codeExpired: dayjs().add(5, 'minutes').toDate(),
+    });
 
-  //   // Send email
-  //   await this.mailerService.sendMail({
-  //     to: user.email,
-  //     subject: 'Activate your account at @hoidanit',
-  //     template: 'register',
-  //     context: {
-  //       name: user.name,
-  //       activationCode: codeId,
-  //     },
-  //   });
+    await this.userRepository.save(user);
 
-  //   return { id: user.id };
-  // }
+    // Send email
+    await this.mailerService.sendMail({
+      to: user.email,
+      subject: 'Activate your account at @itochannel',
+      template: 'register',
+      context: {
+        name: user.name ?? user.email,
+        activationCode: codeId,
+      },
+    });
+
+    return {
+      message: 'Đăng Ký Thành Kông',
+      id: user.id,
+    };
+  }
 
   // async handleActive(data: CodeAuthDto) {
   //   const { id, code } = data;

@@ -1,14 +1,25 @@
-1.  Local Strategy xác thực thông tin đăng nhập (email và password).
-    JWT Strategy dùng để bảo vệ các route cần xác thực sau khi đăng nhập.
-    Guards (AuthGuard) được sử dụng để kích hoạt chiến lược tương ứng.
-    AuthService xử lý logic liên quan đến xác thực và phát hành token.
+1. Đăng kí tk
+
+- Step 1: tạo account
+
+  - Save user to database
+  - Gửi code to email
+
+- Step 2: verify account
+  - Gọi api verify với mã code ( Bên FE, DB có isActive: True thì ok)
+  - Nếu user đki ko active mà vẫn đăng nhập thì sao?
+    - Cho đăng nhập but navigate tới trang Active
+    - Gửi lại mã code (Nếu hếc hạn)
 
 2.  Khi người dùng đăng nhập, Passport sẽ:
     Gọi phương thức validate(email, password) của LocalStrategy.
     Kiểm tra thông tin đăng nhập qua AuthService.validateUser.
     Nếu hợp lệ, trả về thông tin người dùng; nếu không, báo lỗi UnauthorizedException.
-
-3.
+3.  Local Strategy xác thực thông tin đăng nhập (email và password).
+    JWT Strategy dùng để bảo vệ các route cần xác thực sau khi đăng nhập.
+    Guards (AuthGuard) được sử dụng để kích hoạt chiến lược tương ứng.
+    AuthService xử lý logic liên quan đến xác thực và phát hành token.
+4.
 
 - passport-jwt: Phương thức này chỉ cần bạn cung cấp token trong header theo chuẩn Authorization: Bearer <your-jwt-token>, và nó sẽ tự động phân tích, xử lý JWT từ request header, giải mã và kiểm tra tính hợp lệ của token mà không cần phải xử lý thủ công, giúp bạn tập trung vào các logic ứng dụng mà không cần lo lắng về việc giải mã hoặc xử lý token thủ công.
 
