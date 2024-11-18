@@ -4,16 +4,19 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { ROLES } from 'src/common/enums/role.enum';
+import { Order } from '@/modules/orders/entities/order.entity';
+import { Review } from '@/modules/reviews/entities/review.entity';
 
 @Entity({ name: 'users' }) // Tên bảng trong cơ sở dữ liệu
 export class User {
-  @PrimaryGeneratedColumn('uuid') // Primary Key, sử dụng kiểu uuid
+  @PrimaryGeneratedColumn()
   id: string;
 
   @Column({ name: 'full_name', type: 'varchar', nullable: true })
-  fullName: string;
+  name: string;
 
   @Column()
   email: string;
@@ -21,13 +24,13 @@ export class User {
   @Column()
   password: string;
 
-  @Column()
+  @Column({ type: 'varchar', nullable: true })
   phone: string;
 
-  @Column()
+  @Column({ type: 'varchar', nullable: true })
   address: string;
 
-  @Column()
+  @Column({ type: 'varchar', nullable: true })
   image: string;
 
   @Column({ default: ROLES.USER })
@@ -50,4 +53,10 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[]; // Một người dùng có thể có nhiều đơn hàng
+
+  @OneToMany(() => Review, (review) => review.user)
+  reviews: Review[];
 }

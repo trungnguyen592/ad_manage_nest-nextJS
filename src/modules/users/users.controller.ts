@@ -6,10 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
+  ParseIntPipe,
+  NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PaginationDto } from './dto/pagination.dto';
+import { User } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -21,8 +26,8 @@ export class UsersController {
   }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto): Promise<User[]> {
+    return this.usersService.findAll(paginationDto);
   }
 
   @Get(':id')
@@ -32,11 +37,16 @@ export class UsersController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+    return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  async remove(@Param('id') id: string): Promise<any> {
+    const user = await this.usersService.findById(id);
+    if (!user) {
+      throw new NotFoundException('User does not exist!');
+    }
+    await this.usersService.remove(id);
+    return { message: 'User deleted successfully' };
   }
 }
