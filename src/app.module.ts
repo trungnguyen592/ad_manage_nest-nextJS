@@ -6,26 +6,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
 import { User } from './modules/users/entities/user.entity';
 import { AuthModule } from './modules/auth/auth.module';
-import { LikesModule } from './modules/likes/likes.module';
-import { MenuItemModule } from './modules/menu.item/menu.item.module';
-import { MenuItemOptionsModule } from './modules/menu.item.options/menu.item.options.module';
-import { MenusModule } from './modules/menus/menus.module';
-import { OrderDetailModule } from './modules/order.detail/order.detail.module';
-import { OrdersModule } from './modules/orders/orders.module';
-import { RestaurantsModule } from './modules/restaurants/restaurants.module';
-import { ReviewsModule } from './modules/reviews/reviews.module';
-import { MenuItemOption } from './modules/menu.item.options/entities/menu.item.option.entity';
-import { MenuItem } from './modules/menu.item/entities/menu.item.entity';
-import { OrderDetail } from './modules/order.detail/entities/order.detail.entity';
-import { Order } from './modules/orders/entities/order.entity';
-import { Restaurant } from './modules/restaurants/entities/restaurant.entity';
-import { Review } from './modules/reviews/entities/review.entity';
-import { Like } from './modules/likes/entities/like.entity';
-import { Menu } from './modules/menus/entities/menu.entity';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { TransformInterceptor } from './common/core/transform.interceptor';
+import { PostModule } from './modules/post/post.module';
+import { Post } from './modules/post/entities/post.entity';
 
 @Module({
   imports: [
@@ -40,17 +27,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [
-          User,
-          Like,
-          Menu,
-          MenuItem,
-          MenuItemOption,
-          Order,
-          OrderDetail,
-          Restaurant,
-          Review,
-        ],
+        entities: [User, Post],
         synchronize: true,
         autoLoadEntities: true,
       }),
@@ -83,17 +60,10 @@ import { MailerModule } from '@nestjs-modules/mailer';
       }),
       inject: [ConfigService],
     }),
-
+    PostModule,
     UsersModule,
     AuthModule,
-    LikesModule,
-    MenuItemModule,
-    MenuItemOptionsModule,
-    MenusModule,
-    OrderDetailModule,
-    OrdersModule,
-    RestaurantsModule,
-    ReviewsModule,
+    //TypeOrmModule.forFeature([Post]),
   ],
   controllers: [AppController],
   providers: [
@@ -101,6 +71,10 @@ import { MailerModule } from '@nestjs-modules/mailer';
     {
       provide: APP_GUARD, //global guard cho all route: kiểu như đặt guard cho toàn bộ modules, nếu ko có UseGuards => bắn lỗi bên JwtAuthGuard
       useClass: JwtAuthGuard, //
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceptor,
     },
   ],
 })

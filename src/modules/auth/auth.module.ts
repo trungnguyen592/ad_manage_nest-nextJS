@@ -7,11 +7,13 @@ import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './guards/local.strategy';
 import { JwtStrategy } from './guards/jwt.strategy';
+import { PostModule } from '../post/post.module';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
+    PostModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

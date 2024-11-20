@@ -1,5 +1,14 @@
 1. Đăng kí tk
 
+## Logic ĐKI
+
+- Frontend gọi api register
+- Backend lưu user (trả ra id của user), đồng thời gửi email
+- Frontend redirect to /verify/:id
+- Backend viết api (/check-code) check theo id và mã code tại email
+
+# vậy tại sao phải viết check code => trùng id và code
+
 - Step 1: tạo account
 
   - Save user to database

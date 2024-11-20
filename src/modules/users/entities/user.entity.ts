@@ -5,12 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  DeleteDateColumn,
 } from 'typeorm';
 import { ROLES } from 'src/common/enums/role.enum';
-import { Order } from '@/modules/orders/entities/order.entity';
-import { Review } from '@/modules/reviews/entities/review.entity';
-
-@Entity({ name: 'users' }) // Tên bảng trong cơ sở dữ liệu
+import { Post } from '@/modules/post/entities/post.entity';
+@Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn()
   id: string;
@@ -54,9 +53,11 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => Order, (order) => order.user)
-  orders: Order[]; // Một người dùng có thể có nhiều đơn hàng
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
-  @OneToMany(() => Review, (review) => review.user)
-  reviews: Review[];
+  @OneToMany(() => Post, (post) => post.user, {
+    onDelete: 'CASCADE',
+  })
+  posts: Post[]; // Một người dùng có thể có nhiều bai`
 }

@@ -9,14 +9,18 @@ import {
   Query,
   ParseIntPipe,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PaginationDto } from './dto/pagination.dto';
-import { User } from './entities/user.entity';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { ROLES } from '@/common/enums/role.enum';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
 @Controller('users')
+// @UseGuards(RolesGuard)
+// @Roles(ROLES.ADMIN)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -26,13 +30,22 @@ export class UsersController {
   }
 
   @Get()
-  async findAll(@Query() paginationDto: PaginationDto): Promise<User[]> {
-    return this.usersService.findAll(paginationDto);
+  async findAll(
+    @Query() query: string,
+    @Query('current') current: string,
+    @Query('pageSize') pageSize: string,
+  ) {
+    return this.usersService.findAll(query, +current, +pageSize);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+    return this.usersService.findById(id);
+  }
+
+  @Get(':email')
+  findEmail(@Param('email') email: string) {
+    return this.usersService.findByEmail(email);
   }
 
   @Patch(':id')

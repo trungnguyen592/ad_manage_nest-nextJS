@@ -7,11 +7,13 @@ import {
   Body,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import {
+  ChangePasswordAuthDto,
+  CodeAuthDto,
+  CreateAuthDto,
+} from './dto/create-auth.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { Public } from '@/common/decorators/customize';
+import { Public, ResponseMessage } from '@/common/decorators/customize';
 import { MailerService } from '@nestjs-modules/mailer';
 
 @Controller('auth')
@@ -24,7 +26,7 @@ export class AuthController {
   @Post('login')
   @Public()
   @UseGuards(LocalAuthGuard)
-  // @ResponseMessage("Fetch login")
+  @ResponseMessage('Fetch login')
   Login(@Request() req) {
     return this.authService.login(req.user);
   }
@@ -51,27 +53,27 @@ export class AuthController {
     return 'ok';
   }
 
-  // @Post('check-code')
-  // @Public()
-  // checkCode(@Body() registerDto: CodeAuthDto) {
-  //   return this.authService.checkCode(registerDto);
-  // }
+  @Post('check-code')
+  @Public()
+  checkCode(@Body() registerDto: CodeAuthDto) {
+    return this.authService.checkCode(registerDto);
+  }
 
-  // @Post('retry-active')
-  // @Public()
-  // retryActive(@Body("email") email: string) {
-  //   return this.authService.retryActive(email);
-  // }
+  @Post('retry-active')
+  @Public()
+  retryActive(@Body('email') email: string) {
+    return this.authService.retryActive(email);
+  }
 
-  // @Post('retry-password')
-  // @Public()
-  // retryPassword(@Body("email") email: string) {
-  //   return this.authService.retryPassword(email);
-  // }
+  @Post('retry-password')
+  @Public()
+  retryPassword(@Body('email') email: string) {
+    return this.authService.retryPassword(email);
+  }
 
-  // @Post('change-password')
-  // @Public()
-  // changePassword(@Body() data: ChangePasswordAuthDto) {
-  //   return this.authService.changePassword(data);
-  // }
+  @Post('change-password')
+  @Public()
+  changePassword(@Body() data: ChangePasswordAuthDto) {
+    return this.authService.changePassword(data);
+  }
 }
