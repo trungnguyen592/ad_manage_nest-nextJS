@@ -3,7 +3,7 @@
 ## Logic ĐKI
 
 - Frontend gọi api register
-- Backend lưu user (trả ra id của user), đồng thời gửi email
+- Backend lưu user (trả ra id của user), đồng thời gửi email/code để active
 - Frontend redirect to /verify/:id
 - Backend viết api (/check-code) check theo id và mã code tại email
 
@@ -35,3 +35,14 @@
 - extractTokenFromHeader là phương pháp thủ công, bạn tự quản lý việc lấy token từ header và có thể tùy chỉnh logic xử lý. Tuy nhiên, bạn sẽ cần thêm các bước để giải mã và xác thực token. (jsonwebtoken)
 
 => Kiểu như thay vì tự viết code để lấy token từ header Authorization và kiểm tra xem có tồn tại không, sau đó phân tách chuỗi để lấy phần token thì sài thư viện nhanh hơn 👍
+
+5. Tóm tắt
+
+- Đăng nhập (LocalStrategy):
+  Người dùng gửi email, password → Tạo JWT → Trả về JWT.
+- Truy cập route được bảo vệ (JwtStrategy):
+  Người dùng gửi JWT trong header.
+  JwtAuthGuard kiểm tra tính hợp lệ của JWT:
+  Dùng khóa bí mật (JWT_SECRET) để giải mã JWT.
+  Lấy thông tin payload từ JWT.
+  Cho phép truy cập hoặc từ chối (nếu không hợp lệ).

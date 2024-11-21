@@ -40,6 +40,14 @@ export class AuthService {
     // Payload cho JWT
     const payload = { email: user.email, id: user.id };
 
+    // Tạo access_token
+    const access_token = this.jwtService.sign(payload);
+
+    // Tạo refresh_token
+    const refresh_token = this.jwtService.sign(payload, {
+      expiresIn: '7d',
+    });
+
     return {
       user: {
         email: user.email,
@@ -47,7 +55,8 @@ export class AuthService {
         name: user.name,
       },
       // Tạo access_token
-      access_token: this.jwtService.sign(payload),
+      access_token,
+      refresh_token,
     };
   }
 
