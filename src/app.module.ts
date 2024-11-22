@@ -13,9 +13,13 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { TransformInterceptor } from './common/core/transform.interceptor';
 import { PostModule } from './modules/post/post.module';
 import { Post } from './modules/post/entities/post.entity';
-
+import { ThrottlerModule } from '@nestjs/throttler';
 @Module({
   imports: [
+    // ThrottlerModule.forRoot({
+    //   timeToLive: 60, // Thời gian lưu lại số request (60 giây)
+    //   limit: 10, // Tối đa 10 requests trong 60 giây
+    // }),
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,6 +10,7 @@ import { Post } from './entities/post.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import aqp from 'api-query-params';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class PostService {
@@ -17,12 +19,13 @@ export class PostService {
     private postRepository: Repository<Post>,
   ) {}
 
-  async create(createPostDto: CreatePostDto) {
-    const post = this.postRepository.create(createPostDto);
-    await this.postRepository.save(post);
-    return {
-      message: 'Post Created',
-    };
+  create(createPostDto: CreatePostDto, user: User) {
+    const post = this.postRepository.create({
+      ...createPostDto,
+      user: user,
+    });
+
+    return this.postRepository.save(post);
   }
 
   async findAll(query: string, current: number, pageSize: number) {
@@ -64,9 +67,13 @@ export class PostService {
     return post;
   }
 
-  async update(id: string, updatePostDto: UpdatePostDto): Promise<Post> {
+  async update(
+    id: string,
+    updatePostDto: UpdatePostDto,
+    user: User,
+  ): Promise<Post> {
     const post = await this.findById(id);
-
+    console.log('Post found:', post);
     if (!post) {
       throw new NotFoundException('Post not found');
     }
@@ -75,9 +82,9 @@ export class PostService {
     if (post.deletedAt) {
       throw new BadRequestException('Cannot update a deleted post');
     }
-
     // Cập nhật bài viết với dữ liệu mới
     Object.assign(post, updatePostDto);
+    console.log('Update DTO:', updatePostDto);
 
     // Lưu bài viết đã cập nhật vào cơ sở dữ liệu
     return await this.postRepository.save(post);
@@ -91,8 +98,7 @@ export class PostService {
     await this.postRepository.remove(removepost);
   }
 
-  async deletePost(id: string) {
-    // Xóa mềm
+  async deletePost(id: string): Promise<void> {
     await this.postRepository.softDelete(id);
   }
 

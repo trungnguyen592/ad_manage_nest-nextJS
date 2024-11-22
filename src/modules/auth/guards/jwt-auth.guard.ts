@@ -6,12 +6,16 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
+// import { JwtBlacklistService } from './jwt-blacklist.service'; // Import service kiểm tra blacklist
 
 //Đây là guard bạn sẽ viết để kiểm tra xem người dùng đã xác thực thông qua JWT hay chưa.
 //Guard này sẽ kiểm tra tính hợp lệ của JWT trong request, ví dụ như kiểm tra Authorization header có chứa token hợp lệ hay không.
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private reflector: Reflector) {
+  constructor(
+    private reflector: Reflector,
+    // private readonly blacklistService: JwtBlacklistService, // Inject service kiểm tra blacklist
+  ) {
     super();
   }
 
@@ -38,6 +42,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         )
       );
     }
+    // Kiểm tra token có bị blacklist không
+    // const isBlacklisted = await this.blacklistService.isTokenBlacklisted(
+    //   user.access_token,
+    // );
+    // if (isBlacklisted) {
+    //   throw new UnauthorizedException('Access Token đã bị vô hiệu hóa.');
+    // }
     return user;
   }
 }

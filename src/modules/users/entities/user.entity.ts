@@ -59,5 +59,5 @@ export class User {
   @OneToMany(() => Post, (post) => post.user, {
     onDelete: 'CASCADE',
   })
-  posts: Post[]; // Một người dùng có thể có nhiều bai`
+  posts: Post[];
 }

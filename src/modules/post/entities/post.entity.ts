@@ -1,5 +1,6 @@
 import { User } from '@/modules/users/entities/user.entity';
-import { IsNotEmpty, IsOptional, MaxLength } from 'class-validator';
+
+import { IsNotEmpty, IsOptional } from 'class-validator';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -37,4 +38,5 @@ export class Post {
 
   @ManyToOne(() => User, (user) => user.posts)
   user: User;
+  //onDelete: 'SET NULL' nếu không muốn xóa bài viết
 }

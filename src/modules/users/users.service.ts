@@ -96,8 +96,8 @@ export class UsersService {
     if (filter.current) delete filter.current;
     if (filter.pageSize) delete filter.pageSize;
 
-    if (current < 1 || isNaN(current)) current = 1; // Đảm bảo current luôn >= 1
-    if (pageSize < 1 || isNaN(pageSize)) pageSize = 5; // Đảm bảo pageSize luôn >= 1
+    if (current < 1 || isNaN(current)) current = 1;
+    if (pageSize < 1 || isNaN(pageSize)) pageSize = 5;
 
     // ko sài find vì find lấy all data và chỉ đếm số lượng => ko tối ưu
     const totalItems = await this.userRepository.count({
@@ -241,6 +241,7 @@ export class UsersService {
 
   async retryActive(email: string) {
     const user = await this.userRepository.findOne({ where: { email } });
+    console.log('emaill', email);
     if (!user) {
       throw new BadRequestException('Tài khoản không tồn tại');
     }
