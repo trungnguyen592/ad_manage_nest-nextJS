@@ -5,13 +5,20 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { TransformInterceptor } from './common/core/transform.interceptor';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   const port = configService.get('PORT');
   // // Kích hoạt ThrottlerGuard cho toàn bộ ứng dụng
   // app.useGlobalGuards(new ThrottlerGuard());
+
+  // Cấu hình phục vụ file tĩnh từ thư mục public
+  app.useStaticAssets(join(__dirname, '..', 'public'), {
+    prefix: '/public/', // Cấu hình đường dẫn để truy cập file tĩnh
+  });
 
   // Kích hoạt Interceptors cho toàn bộ ứng dụng
   app.useGlobalInterceptors(new TransformInterceptor(new Reflector()));

@@ -14,6 +14,8 @@ import { TransformInterceptor } from './common/core/transform.interceptor';
 import { PostModule } from './modules/post/post.module';
 import { Post } from './modules/post/entities/post.entity';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { FileModule } from './modules/files/file.module';
+
 @Module({
   imports: [
     // ThrottlerModule.forRoot({
@@ -67,6 +69,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
     PostModule,
     UsersModule,
     AuthModule,
+    FileModule,
+
     //TypeOrmModule.forFeature([Post]),
   ],
   controllers: [AppController],

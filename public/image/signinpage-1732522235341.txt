@@ -1,0 +1,226 @@
+import React, { useState, useEffect } from "react";
+import {
+  WrapperContainerLeft,
+  WrapperTextLight,
+  WrapperContainerRight,
+} from "./stylesignin";
+import InputForm from "../../components/InputForm/InputForm";
+import ButtonComponents from "../../components/ButtonComponents/ButtonComponents";
+import imageLogo from "../../assets/image/anhlogin.png";
+import { Image } from "antd";
+import { EyeFilled, EyeInvisibleFilled } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import { useMutationHook } from "../../hooks/useMutationHook";
+import * as UserService from "../../service/UserService";
+import Loading from "../../components/LoadingComponent/Loading";
+import { jwtDecode } from "jwt-decode";
+import { updateUser } from "../../redux/counter/userSlice";
+import { useDispatch } from "react-redux";
+
+const SignInPage = () => {
+  const [isShowPassword, setIsShowPassword] = useState(false);
+  const togglePasswordVisibility = () => {
+    setIsShowPassword((prevState) => !prevState);
+  };
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const mutation = useMutationHook((data) => UserService.loginUser(data));
+  const { data, isLoading, isSuccess } = mutation;
+
+  const handleSignIn = async () => {
+    try {
+      await mutation.mutate({
+        email,
+        password,
+      });
+      console.log("Login submitted:", { email, password });
+    } catch (error) {
+      console.error("Login error:", error);
+    }
+  };
+
+  useEffect(() => {
+    const handleLoginSuccess = async () => {
+      if (isSuccess && data?.access_token) {
+        console.log("Login successful, token received:", data?.access_token);
+
+        try {
+          const decoded = jwtDecode(data?.access_token);
+          console.log("Decoded token:", decoded);
+
+          if (decoded?.userId) {
+            localStorage.setItem("access_token", data?.access_token);
+
+            console.log("Calling getDetailUser with:", {
+              userId: decoded.userId,
+              token: data?.access_token,
+            });
+
+            try {
+              const userResponse = await UserService.getDetailUser(
+                decoded.userId,
+                data?.access_token
+              );
+              console.log("User details full response:", userResponse);
+
+              if (userResponse?.data?.data) {
+                const userData = {
+                  name: userResponse.data.data.name,
+                  email: userResponse.data.data.email,
+                  access_token: data?.access_token,
+                };
+                console.log("User data to dispatch:", userData);
+                dispatch(updateUser(userData));
+                navigate("/");
+              } else if (userResponse?.data) {
+                const userData = {
+                  name: userResponse.data.name,
+                  email: userResponse.data.email,
+                  access_token: data?.access_token,
+                };
+                console.log("User data to dispatch:", userData);
+                dispatch(updateUser(userData));
+                navigate("/");
+              } else {
+                console.error("Invalid response structure:", userResponse);
+              }
+            } catch (error) {
+              console.error("Error fetching user details:", error);
+            }
+          }
+        } catch (error) {
+          console.error("Error in login process:", error);
+        }
+      }
+    };
+    handleLoginSuccess();
+  }, [isSuccess, data]);
+
+  const handleNavigateSignUp = () => {
+    navigate("/signup");
+  };
+
+  const [email, setEmail] = useState("");
+  const handleOnchangeEmail = (value) => {
+    setEmail(value);
+  };
+
+  const [password, setPassword] = useState("");
+  const handleOnchangePassword = (value) => {
+    setPassword(value);
+  };
+
+  // const handleSignIn = () => {
+  //   mutation.mutate({
+  //     email,
+  //     password,
+  //   });
+  //   console.log("sign-in", email, password);
+  // };
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(0, 0, 0, 0.53",
+        height: "100vh",
+      }}
+    >
+      <div
+        style={{
+          width: "800px",
+          height: "445px",
+          borderRadius: "6px",
+          background: "#fff",
+          display: "flex",
+        }}
+      >
+        <WrapperContainerLeft>
+          <h1>Xin chào,</h1>
+          <p>Đăng nhập hoặc Tạo tài khoản</p>
+          <InputForm
+            style={{ marginBottom: "10px" }}
+            placeholder="ito@gmail.com"
+            value={email}
+            onChange={handleOnchangeEmail}
+          />
+          <div style={{ position: "relative" }}>
+            <InputForm
+              placeholder="password"
+              type="text"
+              style={{
+                paddingRight: "40px",
+                WebkitTextSecurity: isShowPassword ? "none" : "disc", // Thay đổi kiểu hiển thị
+              }}
+              value={password}
+              onChange={handleOnchangePassword}
+            />
+            <span
+              onClick={togglePasswordVisibility}
+              style={{
+                zIndex: 10,
+                position: "absolute",
+                top: "20px",
+                fontSize: "15px",
+                transform: "translateY(-50%)",
+                right: "8px",
+                cursor: "pointer",
+              }}
+            >
+              {isShowPassword ? <EyeFilled /> : <EyeInvisibleFilled />}
+            </span>
+          </div>
+          {data?.status === "ERR" && (
+            <span style={{ color: "red" }}>{data?.message}</span>
+          )}
+          <Loading isLoading={isLoading}>
+            <ButtonComponents
+              disabled={!email.length || !password.length}
+              onClick={handleSignIn}
+              size={40}
+              styleButton={{
+                background: "rgb(255,57,69)",
+                height: "48px",
+                width: "100%",
+                border: "none",
+                borderRadius: "4px",
+                margin: "26px 0 10px",
+              }}
+              textButton={"Đăng nhập"}
+              styletextButton={{
+                color: "#fff",
+                fontSize: "15px",
+                fontWeight: "700",
+              }}
+            />
+          </Loading>
+          <p>
+            <WrapperTextLight>Quên mật khẩu?</WrapperTextLight>
+          </p>
+          <p>
+            Chưa có tài khoản?
+            <WrapperTextLight onClick={handleNavigateSignUp}>
+              {" "}
+              Tạo tài khoản
+            </WrapperTextLight>
+          </p>
+        </WrapperContainerLeft>
+        <WrapperContainerRight>
+          <Image
+            src={imageLogo}
+            preview={false}
+            alt="image-logo"
+            height={203}
+            width={203}
+          />
+          <h4>Mua sắm tại I-Ecomerce</h4>
+          <span>Siêu ưu đãi mỗi ngày</span>
+        </WrapperContainerRight>
+      </div>
+    </div>
+  );
+};
+
+export default SignInPage;

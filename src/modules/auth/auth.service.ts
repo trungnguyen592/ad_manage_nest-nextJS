@@ -44,12 +44,16 @@ export class AuthService {
     // Tạo access_token
     const access_token = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_SECRET'),
-      expiresIn: '1d', // Thiết lập thời gian hết hạn cho access token
+      //privateKey: this.configService.get<string>('JWT_PRIVATE_KEY'),
+      //algorithm: 'RS256', // Sử dụng RS256
+      expiresIn: '15m', // Thiết lập thời gian hết hạn cho access token
     });
 
     // Tạo refresh_token
     const refresh_token = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      // privateKey: this.configService.get<string>('JWT_REFRESH_PRIVATE_KEY'),
+      // algorithm: 'RS256',
       expiresIn: '7d',
     });
 
@@ -75,13 +79,18 @@ export class AuthService {
 
   async handleRefreshToken(refresh_token: string) {
     try {
+      //const publicKey = this.configService.get<string>('JWT_REFRESH_PUBLIC_KEY');
       // 1. Verify refresh token using JWT_REFRESH_SECRET
       const payload = await this.jwtService.verify(refresh_token, {
+        // publicKey, // Dùng public key để xác minh
+        // algorithms: ['RS256'],
         secret: this.configService.get('JWT_REFRESH_SECRET'), // Xác minh refresh token
       });
 
       // 2. Cấp lại access token
       const newAccessToken = this.jwtService.sign(payload, {
+        // privateKey: this.configService.get<string>('JWT_PRIVATE_KEY'),
+        // algorithm: 'RS256',
         secret: this.configService.get('JWT_SECRET'), // Xác minh access token
         expiresIn: '1d',
       });

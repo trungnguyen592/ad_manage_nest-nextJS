@@ -10,6 +10,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false, //token het han => cook
       secretOrKey: configService.get<string>('JWT_SECRET'),
+      // algorithms: ['RS256'], // Sử dụng thuật toán RS256
+      // secretOrKey: configService.get<string>('JWT_PUBLIC_KEY'), // Public key để xác minh
     });
   }
 
