@@ -7,6 +7,9 @@ import {
   Body,
   Response,
   UnauthorizedException,
+  HttpCode,
+  HttpStatus,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
@@ -14,10 +17,12 @@ import {
   CodeAuthDto,
   CreateAuthDto,
 } from './dto/create-auth.dto';
-import { LocalAuthGuard } from './guards/local-auth.guard';
-import { Public, ResponseMessage } from '@/common/decorators/customize';
+import { LocalAuthGuard } from './guards/local-refresh auth/local-auth.guard';
+import { Public, ResponseMessage } from '@/common/decorators/public.decorator';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RefreshAuthGuard } from './guards/local-refresh auth/refresh-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('Auth') // Tên nhóm trong Swagger
 @Controller('auth')
@@ -40,10 +45,11 @@ export class AuthController {
     },
   })
   @Public()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
   @ResponseMessage('Fetch login')
-  Login(@Request() req, @Response() res) {
-    return this.authService.login(req.user, res);
+  Login(@Request() req) {
+    return this.authService.login(req.body);
   }
 
   @Post('register')
@@ -54,28 +60,21 @@ export class AuthController {
   }
 
   @Post('logout')
-  async logout(@Response() res): Promise<void> {
-    return this.authService.logout(res);
+  @UseGuards(JwtAuthGuard)
+  async logout(@Req() req) {
+    const user = req.user; // Người dùng đã được xác thực
+    if (!user || !user.id) {
+      throw new UnauthorizedException('Không tìm thấy thông tin người dùng');
+    }
+    // Thực hiện logic logout
+    return this.authService.logout(user.id);
   }
 
-  @Post('refresh-token')
-  async refreshToken(@Request() req, @Response() res) {
-    // 1. Lấy refresh token từ cookie hoặc body
-    const refreshToken = req.cookies['refresh_token'] || req.body.refresh_token;
-
-    if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token not found');
-    }
-
-    try {
-      // 2. Gọi service để cấp lại access token
-      const result = await this.authService.handleRefreshToken(refreshToken);
-
-      // 3. Trả về access token mới
-      return res.json(result);
-    } catch (error) {
-      throw new UnauthorizedException('Failed to refresh token');
-    }
+  @UseGuards(RefreshAuthGuard)
+  @Public()
+  @Post('refresh')
+  refreshToken(@Req() req) {
+    return this.authService.refreshToken(req.user.id);
   }
 
   @Get('mail')
@@ -95,31 +94,31 @@ export class AuthController {
     return 'ok';
   }
 
-  @Post('check-code')
-  @ApiOperation({ summary: 'Check Code Active' })
-  @Public()
-  checkCode(@Body() registerDto: CodeAuthDto) {
-    return this.authService.checkCode(registerDto);
-  }
+  // @Post('check-code')
+  // @ApiOperation({ summary: 'Check Code Active' })
+  // @Public()
+  // checkCode(@Body() registerDto: CodeAuthDto) {
+  //   return this.authService.checkCode(registerDto);
+  // }
 
-  @Post('retry-active')
-  @ApiOperation({ summary: 'Gửi Lại Code Active' })
-  @Public()
-  retryActive(@Body('email') email: string) {
-    return this.authService.retryActive(email);
-  }
+  // @Post('retry-active')
+  // @ApiOperation({ summary: 'Gửi Lại Code Active' })
+  // @Public()
+  // retryActive(@Body('email') email: string) {
+  //   return this.authService.retryActive(email);
+  // }
 
-  @Post('retry-password')
-  @ApiOperation({ summary: 'Gửi Lại Code Active Pass' })
-  @Public()
-  retryPassword(@Body('email') email: string) {
-    return this.authService.retryPassword(email);
-  }
+  // @Post('retry-password')
+  // @ApiOperation({ summary: 'Gửi Lại Code Active Pass' })
+  // @Public()
+  // retryPassword(@Body('email') email: string) {
+  //   return this.authService.retryPassword(email);
+  // }
 
-  @Post('change-password')
-  @ApiOperation({ summary: 'Đổi Pass' })
-  @Public()
-  changePassword(@Body() data: ChangePasswordAuthDto) {
-    return this.authService.changePassword(data);
-  }
+  // @Post('change-password')
+  // @ApiOperation({ summary: 'Đổi Pass' })
+  // @Public()
+  // changePassword(@Body() data: ChangePasswordAuthDto) {
+  //   return this.authService.changePassword(data);
+  // }
 }

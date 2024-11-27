@@ -7,7 +7,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Public, ResponseMessage } from 'src/common/decorators/customize';
+import { Public, ResponseMessage } from '@/common/decorators/public.decorator';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Upload Files')

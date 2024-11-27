@@ -39,6 +39,13 @@ export class UsersService {
     return user;
   }
 
+  async findOne(id: string) {
+    return this.userRepository.findOne({
+      where: { id },
+      select: ['id', 'name', 'hashedRefreshToken', 'role'],
+    });
+  }
+
   async isEmailExist(email: string): Promise<boolean> {
     const user = await this.userRepository.findOne({ where: { email } });
     return user !== null; // Trả về true nếu user tồn tại, false nếu không tồn tại
@@ -151,10 +158,9 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
-  // async deleteUser(id: string) {
-  //   // Xóa mềm
-  //   await this.userRepository.softDelete(id);
-  // }
+  async updateHashedRefreshToken(id: string, hashedRefreshToken: string) {
+    return await this.userRepository.update({ id: id }, { hashedRefreshToken });
+  }
 
   async remove(id: string): Promise<void> {
     // Promise<void> không trả về giá trị cụ thể sau khi thực hiện thao tác xóa.
@@ -218,112 +224,122 @@ export class UsersService {
     };
   }
 
-  async handleActive(codeAuthDto: CodeAuthDto) {
-    const { id, code } = codeAuthDto;
-
-    const user = await this.userRepository.findOne({
-      where: { id, codeId: code },
-    });
+  async updateUserImage(id: string, imagePath: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new BadRequestException('Mã code không hợp lệ hoặc đã hết hạn');
+      throw new Error('User not found');
     }
 
-    //Kiểm tra thời gian hết hạn của mã
-    if (dayjs().isBefore(user.codeExpired)) {
-      user.isActive = true;
-      await this.userRepository.save(user);
-      console.log('User activated successfully', user);
-      return { isActivated: true };
-    } else {
-      throw new BadRequestException('Mã code đã hết hạn');
-    }
+    user.image = imagePath; // Cập nhật đường dẫn ảnh vào cột `image`
+    await this.userRepository.save(user); // Lưu vào cơ sở dữ liệu
+    return user;
   }
+  // async handleActive(codeAuthDto: CodeAuthDto) {
+  //   const { id, code } = codeAuthDto;
 
-  async retryActive(email: string) {
-    const user = await this.userRepository.findOne({ where: { email } });
-    console.log('emaill', email);
-    if (!user) {
-      throw new BadRequestException('Tài khoản không tồn tại');
-    }
-    if (user.isActive) {
-      throw new BadRequestException('Tài khoản đã được kích hoạt');
-    }
+  //   const user = await this.userRepository.findOne({
+  //     where: { id, codeId: code },
+  //   });
+  //   if (!user) {
+  //     throw new BadRequestException('Mã code không hợp lệ hoặc đã hết hạn');
+  //   }
 
-    const codeId = uuidv4();
-    user.codeId = codeId;
-    user.codeExpired = dayjs().add(5, 'minutes').toDate();
-    await this.userRepository.save(user);
-    //Gửi email kích hoạt mới
-    try {
-      await this.mailerService.sendMail({
-        to: user.email,
-        subject: 'Activate your account at @itochannel',
-        template: 'register',
-        context: {
-          name: user.name,
-          activationCode: codeId,
-        },
-      });
-      console.log(`Email sent to ${user.email}`);
-    } catch (error) {
-      console.error('Error sending email:', error);
-      throw new InternalServerErrorException('Email sending failed');
-    }
+  //   //Kiểm tra thời gian hết hạn của mã
+  //   if (dayjs().isBefore(user.codeExpired)) {
+  //     user.isActive = true;
+  //     await this.userRepository.save(user);
+  //     console.log('User activated successfully', user);
+  //     return { isActivated: true };
+  //   } else {
+  //     throw new BadRequestException('Mã code đã hết hạn');
+  //   }
+  // }
 
-    return { id: user.id };
-  }
+  // async retryActive(email: string) {
+  //   const user = await this.userRepository.findOne({ where: { email } });
+  //   console.log('emaill', email);
+  //   if (!user) {
+  //     throw new BadRequestException('Tài khoản không tồn tại');
+  //   }
+  //   if (user.isActive) {
+  //     throw new BadRequestException('Tài khoản đã được kích hoạt');
+  //   }
 
-  async retryPassword(email: string) {
-    // Kiểm tra email
-    const user = await this.userRepository.findOne({ where: { email } });
+  //   const codeId = uuidv4();
+  //   user.codeId = codeId;
+  //   user.codeExpired = dayjs().add(5, 'minutes').toDate();
+  //   await this.userRepository.save(user);
+  //   //Gửi email kích hoạt mới
+  //   try {
+  //     await this.mailerService.sendMail({
+  //       to: user.email,
+  //       subject: 'Activate your account at @itochannel',
+  //       template: 'register',
+  //       context: {
+  //         name: user.name,
+  //         activationCode: codeId,
+  //       },
+  //     });
+  //     console.log(`Email sent to ${user.email}`);
+  //   } catch (error) {
+  //     console.error('Error sending email:', error);
+  //     throw new InternalServerErrorException('Email sending failed');
+  //   }
 
-    if (!user) {
-      throw new BadRequestException('Tài khoản không tồn tại');
-    }
+  //   return { id: user.id };
+  // }
 
-    // Tạo mã kích hoạt mới
-    const codeId = uuidv4();
+  // async retryPassword(email: string) {
+  //   // Kiểm tra email
+  //   const user = await this.userRepository.findOne({ where: { email } });
 
-    // Cập nhật thông tin người dùng
-    user.codeId = codeId;
-    user.codeExpired = dayjs().add(5, 'minutes').toDate();
+  //   if (!user) {
+  //     throw new BadRequestException('Tài khoản không tồn tại');
+  //   }
 
-    await this.userRepository.save(user);
+  //   // Tạo mã kích hoạt mới
+  //   const codeId = uuidv4();
 
-    // Gửi email
-    await this.mailerService.sendMail({
-      to: user.email, // người nhận
-      subject: 'Change your password account at @itochannel', // tiêu đề email
-      template: 'register', // template email
-      context: {
-        name: user.name ?? user.email, // tên người dùng hoặc email
-        activationCode: codeId, // mã kích hoạt
-      },
-    });
+  //   // Cập nhật thông tin người dùng
+  //   user.codeId = codeId;
+  //   user.codeExpired = dayjs().add(5, 'minutes').toDate();
 
-    return { id: user.id, email: user.email };
-  }
+  //   await this.userRepository.save(user);
 
-  async changePassword(data: ChangePasswordAuthDto) {
-    const { email, password, confirmPassword } = data;
+  //   // Gửi email
+  //   await this.mailerService.sendMail({
+  //     to: user.email, // người nhận
+  //     subject: 'Change your password account at @itochannel', // tiêu đề email
+  //     template: 'register', // template email
+  //     context: {
+  //       name: user.name ?? user.email, // tên người dùng hoặc email
+  //       activationCode: codeId, // mã kích hoạt
+  //     },
+  //   });
 
-    if (password !== confirmPassword) {
-      throw new BadRequestException(
-        'Mật khẩu/xác nhận mật khẩu không chính xác.',
-      );
-    }
+  //   return { id: user.id, email: user.email };
+  // }
 
-    const user = await this.userRepository.findOne({ where: { email } });
-    if (!user) {
-      throw new BadRequestException('Tài khoản không tồn tại');
-    }
+  // async changePassword(data: ChangePasswordAuthDto) {
+  //   const { email, password, confirmPassword } = data;
 
-    if (dayjs().isBefore(user.codeExpired)) {
-      user.password = await hashPasswordHelper(password);
-      await this.userRepository.save(user);
-      return { isPasswordChanged: true };
-    } else {
-      throw new BadRequestException('Mã code không hợp lệ hoặc đã hết hạn');
-    }
-  }
+  //   if (password !== confirmPassword) {
+  //     throw new BadRequestException(
+  //       'Mật khẩu/xác nhận mật khẩu không chính xác.',
+  //     );
+  //   }
+
+  //   const user = await this.userRepository.findOne({ where: { email } });
+  //   if (!user) {
+  //     throw new BadRequestException('Tài khoản không tồn tại');
+  //   }
+
+  //   if (dayjs().isBefore(user.codeExpired)) {
+  //     user.password = await hashPasswordHelper(password);
+  //     await this.userRepository.save(user);
+  //     return { isPasswordChanged: true };
+  //   } else {
+  //     throw new BadRequestException('Mã code không hợp lệ hoặc đã hết hạn');
+  //   }
+  // }
 }

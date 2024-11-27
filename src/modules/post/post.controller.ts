@@ -15,7 +15,7 @@ import {
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { Public } from '@/common/decorators/customize';
+import { Public } from '@/common/decorators/public.decorator';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { User } from '../users/entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';

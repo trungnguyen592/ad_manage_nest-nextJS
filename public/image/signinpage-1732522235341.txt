@@ -48,17 +48,17 @@ const SignInPage = () => {
           const decoded = jwtDecode(data?.access_token);
           console.log("Decoded token:", decoded);
 
-          if (decoded?.userId) {
+          if (decoded?.id) {
             localStorage.setItem("access_token", data?.access_token);
 
             console.log("Calling getDetailUser with:", {
-              userId: decoded.userId,
+              id: decoded.id,
               token: data?.access_token,
             });
 
             try {
               const userResponse = await UserService.getDetailUser(
-                decoded.userId,
+                decoded.id,
                 data?.access_token
               );
               console.log("User details full response:", userResponse);

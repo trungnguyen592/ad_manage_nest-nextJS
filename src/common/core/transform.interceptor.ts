@@ -1,4 +1,4 @@
-import { RESPONSE_MESSAGE } from '@/common/decorators/customize';
+import { RESPONSE_MESSAGE } from '@/common/decorators/public.decorator';
 import {
   Injectable,
   NestInterceptor,

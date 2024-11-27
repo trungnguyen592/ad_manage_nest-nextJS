@@ -27,13 +27,16 @@ export class User {
   phone: string;
 
   @Column({ type: 'varchar', nullable: true })
-  address: string;
+  age: string;
 
   @Column({ type: 'varchar', nullable: true })
   image: string;
 
   @Column({ default: ROLES.USER })
   role: string;
+
+  @Column({ nullable: true })
+  hashedRefreshToken: string;
 
   @Column({ default: 'LOCAL' })
   accountType: string;

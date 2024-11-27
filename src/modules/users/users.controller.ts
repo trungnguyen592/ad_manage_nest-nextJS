@@ -10,6 +10,9 @@ import {
   ParseIntPipe,
   NotFoundException,
   UseGuards,
+  Req,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -20,6 +23,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { User } from './entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Users') // Tên nhóm trong Swagger
 @Controller('users')
@@ -42,6 +46,12 @@ export class UsersController {
     @Query('pageSize') pageSize: string,
   ) {
     return this.usersService.findAll(query, +current, +pageSize);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  getProfile(@Req() req) {
+    return this.usersService.findOne(req.user.id);
   }
 
   @Get(':id')
@@ -71,5 +81,30 @@ export class UsersController {
     }
     await this.usersService.remove(id);
     return { message: 'User deleted successfully' };
+  }
+
+  @Post(':id/upload-avatar')
+  @UseInterceptors(FileInterceptor('fileUpload'))
+  async uploadAvatar(
+    @Param('id') id: string, // Lấy userId từ URL
+    @UploadedFile() file: Express.Multer.File, // Lấy file tải lên
+  ) {
+    // Kiểm tra nếu file tải lên không hợp lệ
+    if (!file) {
+      return {
+        message: 'No file uploaded',
+      };
+    }
+
+    const filePath = `public/image/${file.filename}`; // Đường dẫn lưu ảnh
+
+    // Cập nhật ảnh cho người dùng trong cơ sở dữ liệu
+    const updatedUser = await this.usersService.updateUserImage(id, filePath);
+
+    return {
+      message: 'File uploaded successfully',
+      user: updatedUser, // Trả về thông tin người dùng với ảnh đã được cập nhật
+      filePath,
+    };
   }
 }
