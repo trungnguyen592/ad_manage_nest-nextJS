@@ -18,7 +18,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { Public } from '@/common/decorators/public.decorator';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { User } from '../users/entities/user.entity';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 // @UseGuards(ThrottlerGuard) // Bật guard cho controller

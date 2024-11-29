@@ -49,6 +49,19 @@ export class MulterConfigService implements MulterOptionsFactory, OnModuleInit {
           cb(null, finalName);
         },
       }),
+      // Tùy chọn các validator cho file (ví dụ: loại file và kích thước)
+      fileFilter: (req, file, cb) => {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(file.mimetype)) {
+          cb(new Error('Only image files are allowed'), false);
+        } else {
+          cb(null, true);
+        }
+      },
+
+      limits: {
+        fileSize: 10 * 1024 * 1024, // Giới hạn kích thước file tối đa là 10MB
+      },
     };
   }
 }

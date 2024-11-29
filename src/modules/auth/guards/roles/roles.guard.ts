@@ -18,8 +18,7 @@ export class RolesGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user; // Giả sử user đã được gắn vào request
-
+    const user = request.user;
     if (!user || !roles.includes(user.role)) {
       throw new ForbiddenException(
         'Bạn không có quyền truy cập tài nguyên này',

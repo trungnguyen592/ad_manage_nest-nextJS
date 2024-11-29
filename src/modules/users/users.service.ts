@@ -231,8 +231,7 @@ export class UsersService {
     }
 
     user.image = imagePath; // Cập nhật đường dẫn ảnh vào cột `image`
-    await this.userRepository.save(user); // Lưu vào cơ sở dữ liệu
-    return user;
+    return await this.userRepository.save(user); // Lưu vào cơ sở dữ liệu
   }
   // async handleActive(codeAuthDto: CodeAuthDto) {
   //   const { id, code } = codeAuthDto;

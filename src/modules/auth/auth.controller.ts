@@ -22,7 +22,7 @@ import { Public, ResponseMessage } from '@/common/decorators/public.decorator';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RefreshAuthGuard } from './guards/local-refresh auth/refresh-auth.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 
 @ApiTags('Auth') // Tên nhóm trong Swagger
 @Controller('auth')

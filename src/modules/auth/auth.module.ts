@@ -11,7 +11,7 @@ import { PostModule } from '../post/post.module';
 import jwtConfig from '../../config/jwt.config';
 import refreshJwtConfig from '../../config/refresh-jwt.config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 import { TransformInterceptor } from '@/common/core/transform.interceptor';
 import { RefreshJwtStrategy } from './guards/strategies/refresh.strategy';
 

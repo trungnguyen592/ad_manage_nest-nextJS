@@ -13,24 +13,32 @@ import {
   Req,
   UseInterceptors,
   UploadedFile,
+  HttpException,
+  HttpStatus,
+  Inject,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { ROLES } from '@/common/enums/role.enum';
-import { RolesGuard } from '../auth/guards/roles.guard';
+import { RolesGuard } from '../auth/guards/roles/roles.guard';
 import { User } from './entities/user.entity';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { MulterConfigService } from '../files/multer.config';
 
 @ApiTags('Users') // Tên nhóm trong Swagger
 @Controller('users')
 // @UseGuards(RolesGuard)
-// @Roles(ROLES.ADMIN)
+@Roles(ROLES.ADMIN)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    @Inject(MulterConfigService)
+    private readonly multerConfigService: MulterConfigService, // Config Multer
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Tạo người dùng mới' })
@@ -83,28 +91,36 @@ export class UsersController {
     return { message: 'User deleted successfully' };
   }
 
-  @Post(':id/upload-avatar')
-  @UseInterceptors(FileInterceptor('fileUpload'))
+  @Post('upload-avatar')
+  @UseInterceptors(FilesInterceptor('image', 5))
   async uploadAvatar(
-    @Param('id') id: string, // Lấy userId từ URL
+    @Req() req,
     @UploadedFile() file: Express.Multer.File, // Lấy file tải lên
   ) {
-    // Kiểm tra nếu file tải lên không hợp lệ
     if (!file) {
-      return {
-        message: 'No file uploaded',
-      };
+      throw new HttpException(
+        'No file uploaded or invalid file type',
+        HttpStatus.BAD_REQUEST,
+      );
     }
+    const filePath = file.path; // Đường dẫn lưu ảnh
+    try {
+      // Gọi service để cập nhật ảnh cho người dùng
+      const updatedUser = await this.usersService.updateUserImage(
+        req.user.id,
+        filePath,
+      );
 
-    const filePath = `public/image/${file.filename}`; // Đường dẫn lưu ảnh
-
-    // Cập nhật ảnh cho người dùng trong cơ sở dữ liệu
-    const updatedUser = await this.usersService.updateUserImage(id, filePath);
-
-    return {
-      message: 'File uploaded successfully',
-      user: updatedUser, // Trả về thông tin người dùng với ảnh đã được cập nhật
-      filePath,
-    };
+      return {
+        message: 'Avatar uploaded successfully',
+        user: updatedUser, // Trả về thông tin người dùng với ảnh đã được cập nhật
+        filePath,
+      };
+    } catch (error) {
+      throw new HttpException(
+        'Failed to update user avatar',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
